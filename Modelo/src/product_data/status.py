@@ -1,6 +1,8 @@
+import os
 import pyodbc
+from dotenv import load_dotenv
 from opcua import Client
-from product_data.products_ids import products
+from products_ids import products
 import datetime
 
 class OPCUAClient:
@@ -146,13 +148,15 @@ class OPCUAClient:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     opcua_client = OPCUAClient(
-        url="opc.tcp://10.243.74.204:5000",
+        url=os.getenv("OPCUA_IP"),
         products_dict=products,
-        server="localhost",
-        database="ConversationData",
-        user="teste",
-        password="Mpo69542507!"
+        server=os.getenv("DB_SERVER"),
+        database=os.getenv("DB_NAME_CONVERSATION"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
     )
     opcua_client.connect()
     opcua_client.disconnect()

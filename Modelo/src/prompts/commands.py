@@ -1,19 +1,5 @@
 commands = {
-    "dev_mode": False,
-    "API_URL_SEND": "http://localhost:8000/logs/bot",
-    "API_URL_RECEIVE": "http://localhost:8000/logs/user",
-    "web_mode": "Entrando no modo WEB, informações do banco de dados não serão listadas",
-    "nome": "",
-    "usuario": "",
     "initial": "Você é um assistente inteligente que responde perguntas sobre a Andritz e outros temas.",
     "database_error": "Não foi possível encontrar uma informação correspondente no banco de dados.",
-    "key_security_message": "Caso deseje consultar uma informação específica da Andritz no banco de dados, digite 'Andritz': ",
-    "exit_warn": "Digite 'sair' para encerrar o chat.",
-    "exit_message": "Chat encerrado.",
-    "topic_message": "Qual tema você deseja consultar? ",
-    "api_key": "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",
-    "sector": "Qual setor você quer acessar?",
-    "sector_error": "Setor não encontrado. Tente novamente.",
-    "OPCUA_IP": "opc.tcp://10.243.74.204:5000",
     "line_braker": "APENAS RESPONDA A PERGUNTA DO USUÁRIO"
 }

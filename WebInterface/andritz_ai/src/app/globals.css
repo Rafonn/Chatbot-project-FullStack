@@ -195,24 +195,17 @@
   }
 }
 
-/* 1. Definimos a animação de mudança de cor */
 @keyframes color-pulse {
   0% {
-    /* Cor inicial */
     color: #3B82F6;
-    /* azul médio (Tailwind: blue-500) */
   }
 
   50% {
-    /* Cor intermediária */
     color: #60A5FA;
-    /* azul mais claro (Tailwind: blue-400) */
   }
 
   100% {
-    /* Volta à cor inicial */
     color: #3B82F6;
-    /* azul médio */
   }
 }
 
@@ -280,11 +273,11 @@
 
   0%,
   100% {
-    box-shadow: 0 0 0 rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 5px rgba(30, 137, 244, 0.413);
   }
 
   50% {
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 24px rgba(30, 137, 244, 0.413);
   }
 }
 
@@ -293,6 +286,86 @@
 
   animation: pulse-shadow 5s ease-in-out infinite;
 }
+
+.button-logout {
+  cursor: pointer;
+  position: relative;
+  padding: 10px 24px;
+  font-size: 18px;
+  color: rgb(255, 255, 255);
+  border: 2px solid white;
+  border-radius: 34px;
+  background-color: #006db0;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  overflow: hidden;
+}
+
+.button-logout::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 50px;
+  height: 50px;
+  border-radius: inherit;
+  scale: 0;
+  z-index: -1;
+  background-color: white;
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.button-logout:hover::before {
+  scale: 3;
+}
+
+.button-logout:hover {
+  color: #006db0;
+  scale: 1.1;
+  box-shadow: 0 0px 20px rgba(193, 163, 98,0.4);
+}
+
+.button-logout:active {
+  scale: 1;
+}
+
+.btn-login {
+  display: block;
+  margin: 1rem auto;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  padding: 1em 3rem;
+  background-color: #006db0;
+  color: #f5f5f5;
+  box-shadow: 0 8px 24px 0 rgba(0, 128, 255, 0.413);
+  transition: all .3s ease-in-out;
+}
+
+.btn-login-link {
+  color: #f5f5f5;
+  display: block;
+  font-size: .75em;
+  transition: color .3s ease-out;
+}
+
+.field input:focus::placeholder {
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.btn-login:hover {
+  background-color: #f5f5f5;
+  color: #006db0;
+  box-shadow: 0 8px 24px 0 rgb(16 39 112 / 20%);
+}
+
+.btn-login-link:hover {
+  color: #006db0;
+}
+
 
 .bot-reponse-bg {
   background: #395176;

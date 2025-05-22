@@ -1,11 +1,15 @@
+import os
 import pyodbc
+from dotenv import load_dotenv
 
 class LastMessageFetcher:
     def __init__(self, user_id):
-        self.server   = 'localhost'
-        self.database = 'ConversationData'
-        self.username = 'teste'
-        self.password = 'Mpo69542507!'
+        load_dotenv()
+
+        self.server   = os.getenv('DB_SERVER')
+        self.database = os.getenv('DB_NAME')
+        self.username = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
         self.user_id  = user_id
         self.last_message_timestamp = None
 
@@ -19,7 +23,6 @@ class LastMessageFetcher:
         )
 
     def fetch_last_message(self):
-        # Abre conexão e cursor
         with pyodbc.connect(self.conn_str) as conn:
             cursor = conn.cursor()
             cursor.execute("""

@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -6,14 +8,13 @@ const sql = require("mssql");
 const url = require("url");
 
 const app = express();
-const port = 8001;
+const port = process.env.PORT;
 
 const dbConfig = {
-  user: 'teste',
-  password: 'Mpo69542507!',
-  server: 'localhost',
-  port: 1433,
-  database: 'ConversationData',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_NAME,
   options: {
     encrypt: false,
     trustServerCertificate: true
@@ -52,7 +53,6 @@ wss.on("connection", (ws, req) => {
     return result.recordset[0];
   }
 
-  // Intervalo de checagem: a cada 1s
   const intervalId = setInterval(async () => {
     try {
       const latest = await fetchLatestBotLog();
@@ -60,7 +60,7 @@ wss.on("connection", (ws, req) => {
         const ts = new Date(latest.botTimeStamp);
         if (ts > lastTs) {
           lastTs = ts;
-          // Envia só o novo log
+
           ws.send(JSON.stringify({
             botMessage: latest.botMessage,
             botTimeStamp: latest.botTimeStamp
@@ -78,7 +78,7 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-// ————————————— Rotas REST —————————————
+// ————————————— REST Routes ————————————— \\
 
 app.post("/logs/user", async (req, res) => {
   try {
@@ -209,5 +209,4 @@ app.get("/", (req, res) => {
 
 // Só um único listen no final
 server.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
 });

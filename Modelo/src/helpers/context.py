@@ -1,13 +1,15 @@
+import os
 import pyodbc
+from dotenv import load_dotenv
 
 class Context:
     def __init__(self):
-        self.server = "localhost"
-        self.database = "ConversationData"
-        self.username = "teste"
-        self.password = "Mpo69542507!"
-        self.table_name = "user_logs"
-        self.id_column = "userId"
+        load_dotenv()
+
+        self.server   = os.getenv('DB_SERVER')
+        self.database = os.getenv('DB_NAME_CONVERSATION')
+        self.username = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
         self.driver = "{ODBC Driver 17 for SQL Server}"
 
     def _get_connection(self):

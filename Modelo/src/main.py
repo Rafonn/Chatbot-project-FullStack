@@ -1,8 +1,10 @@
+import os
 import openai
 import traceback
 import time
 import threading
 from multiprocessing import Process, set_start_method
+from dotenv import load_dotenv
 
 from db_logs.receive import LastMessageFetcher
 from db_logs.toggleReceive import ToggleButtonStatus
@@ -19,10 +21,8 @@ class RestartException(Exception):
     pass
 
 class ChatAndritz:
-    def __init__(self, api_key, user_id):
+    def __init__(self, user_id):
         self.user_id = user_id
-        self.api_key = api_key
-        openai.api_key = self.api_key
 
         self.message_fetcher = LastMessageFetcher(self.user_id)
 
@@ -50,20 +50,8 @@ class ChatAndritz:
         return False
 
     def _log_and_print(self, message):
-        if commands["dev_mode"]:
-            print(self._tokens_count(message))
         conv = Conversation(message, self.user_id)
         conv.botResponse()
-
-    def _send_model(self, messages):
-        try:
-            resp = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages,
-            )
-            return resp.choices[0].message.content
-        except Exception as e:
-            return f"Erro ao acessar a API: {e}"
 
     def _verify_input(self):
         key = ToggleButtonStatus(self.user_id)
@@ -83,7 +71,7 @@ class ChatAndritz:
     
     def _escolher_produto(self, user):
         product = Prompts()
-        self._log_and_print(product.machine_identify(user))
+        self._log_and_print(product.product_identify(user))
     
     def _dude(self, user):
         dude_options = Prompts()
@@ -146,9 +134,9 @@ class ChatAndritz:
                 self._log_and_print("⚠️ Mudança detectada! Reiniciando verificações...")
                 self.restart_flag.clear()
 
-def start_chat_for_user(user_id, api_key):
+def start_chat_for_user(user_id, empty = ""):
     try:
-        bot = ChatAndritz(api_key=api_key, user_id=user_id)
+        bot = ChatAndritz(user_id=user_id)
     except Exception:
         traceback.print_exc()
         return
@@ -164,7 +152,6 @@ if __name__ == "__main__":
     except RuntimeError:
         pass
 
-    openai.api_key = commands["api_key"]
     users = SqlServerUserFetcher()
 
     active_processes = {}
@@ -177,7 +164,7 @@ if __name__ == "__main__":
         for uid in (current_ids - running_ids):
             p = Process(
                 target=start_chat_for_user,
-                args=(uid, openai.api_key),
+                args=(uid, ""),
                 name=f"ChatAndritz-{uid}"
             )
             p.daemon = True

@@ -1,4 +1,6 @@
+import os
 import pyodbc
+from dotenv import load_dotenv
 
 nomes_personalizados = {
     "machine_name": "#### Equipamento",
@@ -18,16 +20,21 @@ nomes_personalizados = {
 }
 
 class ProductInfoSQL:
-    def __init__(
-        self,
-        machine_name: str,
-    ):
+    def __init__(self, machine_name: str):
+        load_dotenv()
+
+        self.server   = os.getenv('DB_SERVER')
+        self.database = os.getenv('DB_NAME_CONVERSATION')
+        self.username = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
+        self.driver = "{ODBC Driver 17 for SQL Server}"
+
         self.conn_str = (
-            "DRIVER={ODBC Driver 17 for SQL Server};"
-            "SERVER=localhost;"
-            "DATABASE=ConversationData;"
-            "UID=teste;"
-            "PWD=Mpo69542507!;"
+            f"DRIVER={self.driver};"
+            f"SERVER={self.server};"
+            f"DATABASE={self.database};"
+            f"UID={self.username};"
+            f"PWD={self.password};"
         )
         self.machine_name = machine_name
 

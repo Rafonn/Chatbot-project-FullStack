@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 
 function Input({
   className,
-  type = "text", // Valor padrão 'text' se o tipo não for passado
+  type = "text",
   ...props
 }) {
-  // Verifica se o tipo é 'textarea' para renderizar um <textarea> em vez de <input>
+
   return (
     <textarea
       data-slot="input"

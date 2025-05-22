@@ -1,5 +1,7 @@
+import os
 import openai
 import json
+from dotenv import load_dotenv
 from prompts.commands import commands
 from machines.machines import machines_names
 from machine_data.machineName import MachineInfoSQL
@@ -7,13 +9,15 @@ from product_data.productName import ProductInfoSQL
 
 class Prompts:
     def __init__(self):
-        self.api_key = commands["api_key"]
+        load_dotenv()
+
+        self.api_key = os.getenv('API_KEY')
         openai.api_key = self.api_key
 
     def _send_model(self, message):
         try:
             resp = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=message,
             )
             return resp.choices[0].message.content

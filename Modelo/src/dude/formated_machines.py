@@ -1,5 +1,5 @@
 formated_machines = {
-    "Tear 04 - Texo CF1035",
+    "Tear 01 - Jager TP100",
     "Tear 02 - Texo CF1015",
     "Tear 03 - Jager TP500-1",
     "Tear 04 - Texo CF1035",

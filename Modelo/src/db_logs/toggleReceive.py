@@ -1,14 +1,23 @@
+import os
 import pyodbc
+from dotenv import load_dotenv
 
 class ToggleButtonStatus:
     def __init__(self, user_id):
+        load_dotenv()
+
+        self.server   = os.getenv('DB_SERVER')
+        self.database = os.getenv('DB_NAME')
+        self.username = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
         self.user_id = user_id
+
         self.conn_str = (
             'DRIVER={ODBC Driver 17 for SQL Server};'
-            'SERVER=localhost;'
-            'DATABASE=ConversationData;'
-            'UID=teste;'
-            'PWD=Mpo69542507!;'
+            f'SERVER={self.server};'
+            f'DATABASE={self.database};'
+            f'UID={self.username};'
+            f'PWD={self.password};'
             'TrustServerCertificate=yes;'
         )
         self._ensure_table()
@@ -34,7 +43,7 @@ class ToggleButtonStatus:
     def fetch_status(self) -> bool:
         with pyodbc.connect(self.conn_str, autocommit=True) as conn:
             cursor = conn.cursor()
-            # Tenta buscar o estado
+
             cursor.execute(
                 "SELECT buttonState FROM andritzButton_logs WHERE userId = ?",
                 self.user_id

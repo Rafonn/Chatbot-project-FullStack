@@ -1,18 +1,26 @@
+import os
 import pyodbc
+from dotenv import load_dotenv
 
 class Conversation:
     def __init__(self, message, user_id):
+        load_dotenv()
+
         self.message = message
         self.user_id = user_id
+        self.server   = os.getenv('DB_SERVER')
+        self.database = os.getenv('DB_NAME')
+        self.username = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
         self.conn = self.connect_to_db()
 
     def connect_to_db(self):
         conn_str = (
             'DRIVER={ODBC Driver 17 for SQL Server};'
-            'SERVER=localhost;'
-            'DATABASE=ConversationData;'
-            'UID=teste;'
-            'PWD=Mpo69542507!;'
+            f'SERVER={self.server};'
+            f'DATABASE={self.database};'
+            f'UID={self.username};'
+            f'PWD={self.password};'
             'TrustServerCertificate=yes;'
         )
         conn = pyodbc.connect(conn_str, autocommit=True)
@@ -43,8 +51,7 @@ class Conversation:
             VALUES (?, ?);
         """, (self.user_id, self.message))
         inserted_ts = cursor.fetchone()[0]
-        # Commit automático por autocommit=True, mas se precisar:
-        # self.conn.commit()
+
         return {
             "botMessage": self.message,
             "botTimeStamp": inserted_ts
@@ -53,7 +60,6 @@ class Conversation:
     def close(self):
         self.conn.close()
 
-# Exemplo de uso:
 if __name__ == "__main__":
     conv = Conversation("Olá, mundo!", "usuario123")
     result = conv.botResponse()

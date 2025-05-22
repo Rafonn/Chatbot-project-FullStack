@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "../api/auth/[...nextauth]/route";
-import Chatbot from "./ChatClient";
+import Chatbot from "../../components/ChatClient";
 
 export const dynamic = "force-dynamic";
 

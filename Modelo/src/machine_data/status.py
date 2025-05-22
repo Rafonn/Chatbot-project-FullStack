@@ -1,4 +1,6 @@
+import os
 import pyodbc
+from dotenv import load_dotenv
 from opcua import Client
 from machines_ids import machines
 import datetime
@@ -87,29 +89,24 @@ class OPCUAClient:
 
         for col, sql_type in col_type_map.items():
             if col not in existing:
-                # adiciona coluna nova
                 self.cursor.execute(f"ALTER TABLE machines ADD {col} {sql_type} NULL;")
             else:
-                # opcional: poderia validar se existing[col] bate com sql_type e alterar se necessário
                 pass
 
         self.cnxn.commit()
 
     def save_data_to_db(self, machine_name, values: dict):
         try:
-            # 1) prepara nomes de colunas limpos
             col_names = [
                 key.replace(" ", "_").replace("/", "_")
                 for key in values.keys()
             ]
-            # 2) infere tipos e garante colunas
             col_type_map = {
                 col: self.infer_sql_type(val)
                 for col, val in zip(col_names, values.values())
             }
             self.ensure_columns(col_type_map)
 
-            # 3) tenta INSERT
             cols_str = ", ".join(col_names)
             placeholders = ", ".join("?" for _ in col_names)
             insert_sql = f"""
@@ -121,7 +118,6 @@ class OPCUAClient:
             self.cnxn.commit()
 
         except pyodbc.IntegrityError:
-            # PK já existe: faz UPDATE
             try:
                 set_clause = ", ".join(f"{col}=?" for col in col_names)
                 update_sql = f"""
@@ -155,13 +151,15 @@ class OPCUAClient:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     opcua_client = OPCUAClient(
-        url="opc.tcp://10.243.74.204:5000",
+        url=os.getenv("OPCUA_IP"),
         machines_dict=machines,
-        server="localhost",
-        database="ConversationData",
-        user="teste",
-        password="Mpo69542507!"
+        server=os.getenv("DB_SERVER"),
+        database=os.getenv("DB_NAME_CONVERSATION"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
     )
     opcua_client.connect()
     opcua_client.disconnect()

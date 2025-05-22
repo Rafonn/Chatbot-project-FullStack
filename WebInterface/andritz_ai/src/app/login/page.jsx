@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -35,8 +36,14 @@ export default function LoginPage() {
 
 
     return (
-        <div className="min-h-screen min-w-screen flex items-center justify-center w-full h-full">
-            <div className="w-full max-w-md p-8 rounded shadow border border-[#3498db] overflow-auto pulse-shadow">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+                opacity: 1,
+                transition: { delay: 2, duration: 0.4, ease: "easeIn" },
+            }}
+            className="min-h-screen min-w-screen flex items-center justify-center w-full h-full">
+            <div className="w-full max-w-md p-8 rounded shadow rounded-[10%] overflow-auto pulse-shadow">
 
                 <div className="flex justify-center items-center w-full circle-container mt-15">
                     <div className="circle"></div>
@@ -64,7 +71,13 @@ export default function LoginPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                            className={`
+                            w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-center
+                                ${email
+                                    ? 'bg-white text-[#006db0]'
+                                    : 'text-white'
+                                }
+                            `}
                         />
                     </div>
                     <div className="mb-6">
@@ -77,17 +90,12 @@ export default function LoginPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-white text-center mb-10"
                         />
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-                    >
-                        Entrar
-                    </button>
+                    <button className="btn-login" type="submit">Entrar</button>
                 </form>
             </div>
-        </div>
+        </motion.div>
     );
 }
