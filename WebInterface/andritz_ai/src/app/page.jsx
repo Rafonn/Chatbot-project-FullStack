@@ -38,7 +38,7 @@ export default function Home() {
 
           <div className="text-center mb-8" >
             <h1 className="text-white text-5xl font-bold mb-4">
-              Andritz PFR AI
+              ANDRITZ PFR AI
             </h1>
             <p className="text-white text-lg">
               Para começar, clique no botão abaixo:

@@ -75,7 +75,8 @@ class ChatAndritz:
     
     def _dude(self, user):
         dude_options = Prompts()
-        dude = dude_options.dude_identify(user, formated_machines)
+        machines_str = "\n".join(formated_machines)
+        dude = dude_options.dude_identify(user, machines_str)
         
         filter = Filter(dude, user)
         self._log_and_print(filter.filter_order())

@@ -1,4 +1,4 @@
-formated_machines = {
+formated_machines = [
     "Tear 01 - Jager TP100",
     "Tear 02 - Texo CF1015",
     "Tear 03 - Jager TP500-1",
@@ -78,4 +78,4 @@ formated_machines = {
     "Talha Ponte Rolante 1",
     "Talha Ponte Rolante 2",
     "Rebocador EZS 130"
-}
+]

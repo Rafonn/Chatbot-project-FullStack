@@ -1,8 +1,0 @@
-{
-    "OBJETIVO": "Garantir a confiabilidade de medição do número de torções para metro de fios \nretorcidos. \n \n2.",
-    "RESPONSABILIDADE": "Cabe a Administração de Metrologia Industrial a responsabilidade pela tarefa acima \ndescrita. \n \n3.",
-    "GLOSSÁRIO": "RIE - Relatório de Inspeção do Equipamento \nRNCE - Relatório de Não Conformidade do Equipamento \n \n4.",
-    "FORMULÁRIOS": "Matriz de Controle de Dispositivo de Medição e Monitoramento \nRIE \nRNCE \n \n5.",
-    "CONDIÇÕES GERAIS": "5.1. Introdução. \n \n5.1.1. Critérios de Aceitação: conforme matriz de controle de dispositivo de medição e \nmonitoramento. \n \n5.1.2. Inspeção Visual: verificar as condições gerais do equipamento. \n \n5.2. Material necessário \n- Medidor de número de rotações calibrado. \n \n5.3. Procedimento \n \n5.3.1. Conectar a ponta do eixo do medidor de número de rotações à do medidor de \ntorção. \n \n5.3.2. Com os medidores zerados colocar o medidor de torção a girar até alcançar 100 \nrotações. Anotar os valores encontrados em ambos os medidores. \n \n5.3.3. Repetir o processo até obter um total de 5 leituras. \n \n5.3.4. Repetir os passos anteriores para 150, 200 e 250 rotações. \n \nNota: Em caso de não conformidade no desvio da tolerância emitir o RNCE. \n \n \n \n \n\nINSTRUÇÃO DE TRABALHO \nCalibração Medidor de torção de fios texcontral \nDSG.020.PT \nRev.nº.: 0 \nData Rev.: 22/07/19 \nPágina 2 de 2\n \nANDRITZ FABRICS AND ROLLS \n6.",
-    "CONDIÇÕES ESPECÍFICAS": "NA. \n7."
-}

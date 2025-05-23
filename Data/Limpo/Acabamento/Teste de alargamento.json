@@ -1,8 +1,0 @@
-{
-  "OBJETIVO": "Definir etapas do teste de alargamento, para posterior avaliação do produto em desenvolvimento.",
-  "RESPONSABILIDADE": "Cabe a Engenharia de Produto e/ou Engenharia de Processo a emissão e o acompanhamento do teste de alargamento.",
-  "GLOSSARIO": "NA.",
-  "FORMULARIOS": "Modelo Teste de Alargamento REV03.",
-  "CONDICOES_GERAIS": "5.1. Este teste será emitido quando a Engenharia de Produto desenvolver um novo projeto de base ou quando se fizer necessário. 5.2. Ao definir o produto que será realizado o teste de alargamento, o PCP será informado para que em conjunto com a Produção programe uma data para realização do teste, levando-se em conta que após o teste deve-se aguardar por 24 h para medição, definição do fator e refile do produto. 5.3. O teste de alargamento deverá ser realizado com acompanhamento da Engenharia de Produto e/ou Engenharia de Processo.",
-  "CONDICOES_ESPECIFICAS": "O anexo Modelo Teste de Alargamento REV03 contempla o detalhamento das etapas deste processo."
-}

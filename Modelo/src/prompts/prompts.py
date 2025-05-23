@@ -25,7 +25,7 @@ class Prompts:
             return f"Erro ao acessar a API: {e}"
     
     def default_prompt(self, history, message):
-        response = self._send_model(history + [{"role": "user", "content": f"O Usuário enviu:{message}. {commands["line_braker"]}"}])
+        response = self._send_model(history + [{"role": "user", "content": message}])
 
         return response
     
@@ -47,7 +47,7 @@ class Prompts:
 
         res = self._send_model([{"role": "user", "content": prompt}])
 
-        if(res == "vazio"):
+        if(res.lower() == "vazio"):
             prompt = f"""
                 O usuário enviou a seguinte mensagem: {message}
                 Se a mensagem contiver alguma palavra como: "produto", "pano", "cliente", podendo ser plural ou singular, responda "produto".
@@ -70,7 +70,7 @@ class Prompts:
             """
             res = self._send_model([{"role": "user", "content": prompt}])
 
-        if (res == "vazio"):
+        if (res.lower() == "vazio"):
             prompt = f"""
                 O usuário enviou: "{message}".
                 Tabelas disponíveis: {tabelas}
@@ -88,8 +88,8 @@ class Prompts:
             ANALISE BEM A MENSAGEM DO USUARIO.
             Há alguma data presente nessa mensagem? Se sim, responda com a data no formato ISO 8601 completo:  
             "YYYY-MM-DDThh:mm:ss" 
-            Caso não haja data, responda com "vazio".
-            RESPONDA APENAS COM A DATA OU VAZIO, SEM ASPAS E PONTUAÇÕES.
+            Caso não haja data, responda com "vazio" sem aspas e sem pontuações.
+            RESPONDA APENAS COM A DATA OU "vazio", SEM ASPAS E PONTUAÇÕES.
         """
         res = self._send_model([{"role": "user", "content": date_prompt}])
         search_options.append(res)
@@ -101,9 +101,9 @@ class Prompts:
                 - Concluido → devolva "Completed" 
                 - Em aberto → devolva "New Request"  
                 - Em progresso → devolva "In Progress" 
-            - Se nenhuma delas estiver presente, devolva "Vazio".
+            - Se nenhuma delas estiver presente, devolva "vazio" sem aspas e sem pontuações.
 
-            RESPONDA APENAS COM "Completed", "New Request", "In Progress" ou "vazio".
+            RESPONDA APENAS COM "Completed", "New Request", "In Progress" ou "vazio" sem aspas e sem pontuações.
         """
         res = self._send_model([{"role": "user", "content": status_prompt}])
         search_options.append(res)
@@ -111,10 +111,11 @@ class Prompts:
         machine_prompt = f"""
             O user escreveu: "{message}"
             ANALISE BEM A MENSAGEM DO USUARIO.
-            - Se a mensagem contiver alguma palvra parecida com um dos valores em "{machines}", retornar esse valor.
-            - Caso contrário, retornar "Vazio".
+            - Se a mensagem contiver alguma palvra PARECIDA, podendo começar com a palavra ou não
+              com um dos valores em: "{machines}", retornar esse valor. Por exemplo: "tear 1" -> "Tear 01 - Jager TP100"
+            - Caso contrário, retornar "vazio".
 
-            RESPONDA APENAS COM A PALAVRA OU VAZIO, SEM ASPAS E PONTUAÇÕES.
+            RESPONDA APENAS COM A PALAVRA OU "vazio" sem aspas e sem pontuações.
         """
         res = self._send_model([{"role": "user", "content": machine_prompt}])
         search_options.append(res)

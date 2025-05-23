@@ -1,8 +1,0 @@
-{
-    "OBJETIVO": "Garantir a confiabilidade de operação do sistema de medição de velocidade das \nmáquinas de acabamento. \n \n2.",
-    "RESPONSABILIDADE": "Cabe a Administração de Metrologia Industrial a responsabilidade pela tarefa acima \ndescrita. \n \n3.",
-    "GLOSSÁRIO": "RIE - Relatório de Inspeção do Equipamento \nRNCE - Relatório de Não Conformidade do Equipamento \n \n4.",
-    "FORMULÁRIOS": "Matriz de Controle de Dispositivo de Medição e Monitoramento \nRIE \nRNCE \n \n5.",
-    "CONDIÇÕES GERAIS": "5.1. Introdução \n \n5.1.1. Critérios de Aceitação: conforme matriz de controle de dispositivo de medição e \nmonitoramento. \n \n5.1.2. Inspeção Visual: verificar as condições gerais do equipamento. \n \n5.2. Ajuste/calibração do sistema. \n \n5.2.1. Material necessário. \n- um tacômetro digital manual calibrado (com ponteira de MPM rodinha com 10cm de \nperímetro). \n \n5.2.2. Ajuste. \nPassos: \n1 - Antes de por o cilindro em funcionamento, verificar se a velocidade mostrada no \nindicador é igual a 0m/min. Se diferente ajustar o software para este fim; \n \n2 - Colocar o cilindro móvel a girar na velocidade máxima. Se necessário ajustar o \nsoftware para este fim; \n \n3 - Decrescer a velocidade do cilindro e anotar os valores indicados no tacômetro para \nvalores de (15, 10, 5, 0 metros/min) mostrados na tela de operação, realizando quatro \nleituras por ponto e calculando a média e incerteza do processo; \nNota: Em caso de não conformidade no desvio da tolerância emitir o RNCE. \n \n\nINSTRUÇÃO DE TRABALHO \nCalibração ind. velocidade S.Meter/Hechtenberg/NLI\nDSG.015.PT \nRev.nº.: 0 \nData Rev.: 22/07/19 \nPágina 2 de 2\n \nANDRITZ FABRICS AND ROLLS \n \n6.",
-    "CONDIÇÕES ESPECÍFICAS": "NA. \n7."
-}

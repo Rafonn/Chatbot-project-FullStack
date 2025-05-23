@@ -67,7 +67,7 @@ export default function Chatbot({ email }) {
     }, [email]);
 
     const handleLogout = () => {
-        signOut({ callbackUrl: "/login" });
+        signOut({ callbackUrl: "/" });
     };
 
     useEffect(() => {
@@ -88,7 +88,7 @@ export default function Chatbot({ email }) {
 
     useEffect(() => {
         const userId = email;
-        fetch(`${process.env.NEXT_PUBLIC_API_DEV}/logs/toggle`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/logs/toggle`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ toggle: false, userId }),
@@ -105,7 +105,7 @@ export default function Chatbot({ email }) {
     const connectWebSocket = () => {
         const userId = email;
         const ws = new WebSocket(
-            `${process.env.NEXT_PUBLIC_WS_DEV}?userId=${encodeURIComponent(userId)}`
+            `${process.env.NEXT_PUBLIC_WS_URL}?userId=${encodeURIComponent(userId)}`
         );
         socketRef.current = ws;
 
@@ -157,7 +157,7 @@ export default function Chatbot({ email }) {
         const toggle = e.target.checked;
         console.log("Valor do toggle:", toggle);
         const userId = email;
-        await fetch(`${process.env.NEXT_PUBLIC_API_DEV}/logs/toggle`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logs/toggle`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ toggle, userId }),
@@ -180,7 +180,7 @@ export default function Chatbot({ email }) {
         setInput("");
 
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_DEV}/logs/user`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logs/user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ log: textToSend, userId }),
