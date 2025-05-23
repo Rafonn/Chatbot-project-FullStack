@@ -7,7 +7,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import "../app/globals.css";
-import Circle from './ui/Circle';
+import dotenv from 'dotenv';
+import path from 'path'
 
 export default function Chatbot({ email }) {
     const [messages, setMessages] = useState([]);
@@ -87,7 +88,7 @@ export default function Chatbot({ email }) {
 
     useEffect(() => {
         const userId = email;
-        fetch("http://localhost:8001/logs/toggle", {
+        fetch(`${process.env.NEXT_PUBLIC_API_DEV}/logs/toggle`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ toggle: false, userId }),
@@ -101,43 +102,62 @@ export default function Chatbot({ email }) {
         .map(msg => msg.sender)
         .lastIndexOf('user');
 
-    useEffect(() => {
+    const connectWebSocket = () => {
         const userId = email;
-
-        const ws = new WebSocket(`ws://localhost:8001?userId=${encodeURIComponent(userId)}`);
+        const ws = new WebSocket(
+            `${process.env.NEXT_PUBLIC_WS_DEV}?userId=${encodeURIComponent(userId)}`
+        );
         socketRef.current = ws;
 
+        let pingInterval;
+
         ws.onopen = () => {
-            console.log("WebSocket conectado ao servidor de logs do bot");
+            console.log('WebSocket conectado');
+            setLoading(false);
+            // ping de aplicação (opcional)
+            pingInterval = setInterval(() => {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            }, 30000);
         };
 
         ws.onmessage = (event) => {
             const { botMessage, botTimeStamp, error } = JSON.parse(event.data);
             if (error) {
-                console.error("Erro recebido no WS:", error);
+                console.error('Erro recebido no WS:', error);
             } else {
-                setMessages((prev) => [
+                setMessages(prev => [
                     ...prev,
-                    { text: botMessage, sender: "bot", time: botTimeStamp },
+                    { text: botMessage, sender: 'bot', time: botTimeStamp }
                 ]);
             }
             setLoading(false);
         };
 
-        ws.onclose = () => {
-            console.log("WebSocket desconectado");
-        };
-
-        return () => {
+        ws.onerror = (err) => {
+            console.error('WebSocket error:', err.message);
             ws.close();
         };
-    }, []);
+
+        ws.onclose = (e) => {
+            console.log('WebSocket desconectado, tentando reconectar em 1s', e.reason);
+            clearInterval(pingInterval);
+            setTimeout(connectWebSocket, 1000);
+        };
+    };
+
+    useEffect(() => {
+        connectWebSocket();
+        return () => {
+            socketRef.current?.close();
+        };
+    }, [email]);
+
 
     const handleToggleChange = async (e) => {
         const toggle = e.target.checked;
         console.log("Valor do toggle:", toggle);
         const userId = email;
-        await fetch("http://localhost:8001/logs/toggle", {
+        await fetch(`${process.env.NEXT_PUBLIC_API_DEV}/logs/toggle`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ toggle, userId }),
@@ -160,7 +180,7 @@ export default function Chatbot({ email }) {
         setInput("");
 
         try {
-            await fetch("http://localhost:8001/logs/user", {
+            await fetch(`${process.env.NEXT_PUBLIC_API_DEV}/logs/user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ log: textToSend, userId }),

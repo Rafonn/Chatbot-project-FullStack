@@ -33,6 +33,26 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws, req) => {
+  ws.isAlive = true;
+
+  // toda vez que o cliente responder um pong, marca de novo como vivo
+  ws.on("pong", () => {
+    ws.isAlive = true;
+  });
+
+  // a cada 30s, varre todos os sockets:
+  // - se ainda não respondeu ao último ping, encerra
+  // - senão, zera o flag e manda novo ping
+  const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach(client => {
+      if (client.isAlive === false) {
+        return client.terminate();
+      }
+      client.isAlive = false;
+      client.ping();    // envia PING de protocolo
+    });
+  }, 30000);
+
   const { userId, lastTimestamp } = url.parse(req.url, true).query;
   if (!userId) {
     ws.send(JSON.stringify({ error: "Parâmetro 'userId' na query é obrigatório." }));
@@ -74,6 +94,7 @@ wss.on("connection", (ws, req) => {
   }, 1000);
 
   ws.on("close", () => {
+    clearInterval(heartbeatInterval);
     clearInterval(intervalId);
   });
 });
@@ -207,6 +228,5 @@ app.get("/", (req, res) => {
   res.json({ message: "API Online!" });
 });
 
-// Só um único listen no final
 server.listen(port, '0.0.0.0', () => {
 });

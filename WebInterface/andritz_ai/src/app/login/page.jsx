@@ -21,8 +21,6 @@ export default function LoginPage() {
             password,
         });
 
-        console.log('SIGNIN RESULT →', result);
-
         const hasError =
             result.error && result.error !== 'undefined';
 

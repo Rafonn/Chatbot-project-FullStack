@@ -20,6 +20,7 @@ class Filter:
         print(f"Maquina: {self.bot_message[2]}")
 
         by_name = [order for order in orders if self._filter_by_name(order)]
+        print(f"by_name: {by_name}")
 
         if machine_code == 'vazio':
             result = by_name if by_name else orders
@@ -28,6 +29,7 @@ class Filter:
         base_list = by_name or orders
         
         filtered = [order for order in base_list if str(order.get('Ativo')) == str(machine_code)]
+        print(f"filtered: {filtered}")
         return self._format_to_string(filtered)
     
     def _filter_by_name(self, order):
@@ -47,6 +49,9 @@ class Filter:
         intersection = word1 & word2
 
         return next(iter(intersection), False)
+    
+    def _filter_by_id(self, order):
+        pass
 
     def _format_to_string(self, orders):
         if orders == []:

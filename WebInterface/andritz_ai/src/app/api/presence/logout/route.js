@@ -9,8 +9,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "Faltou userEmail" }, { status: 400 });
     }
 
-    console.log(userEmail)
-
     const pool = await connectToSqlServer();
     await pool
       .request()
