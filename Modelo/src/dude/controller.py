@@ -1,13 +1,17 @@
 import requests
+import os
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 from dateutil.relativedelta import relativedelta
+from dotenv import load_dotenv
 
 class DudeConnectionBase:
+    
     def __init__(self):
-        self.url = "https://assetessentials.dudesolutions.com/XeriumTechnologies/api"
-        self.username = "PSiqueira"
-        self.password = "@#Andritz001"
+        load_dotenv()
+        self.url = os.getenv("DUDE_API")
+        self.username = os.getenv("DUDE_USER")
+        self.password = os.getenv("DUDE_PASSWORD")
         self.culture = "pt-BR"
         self.token_expiry = 120
 

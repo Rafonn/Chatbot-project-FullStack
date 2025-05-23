@@ -7,7 +7,6 @@ class Filter:
         self.user_message = user_message
 
         print(bot_message)
-        print(user_message)
 
     def filter_order(self):
         filter = DudeSolutions(self.bot_message[0], self.bot_message[1])
