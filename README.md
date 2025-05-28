@@ -46,16 +46,14 @@ An intelligent chatbot platform that combines modern web technologies to deliver
 ```
 project-root/
 │
-├── frontend/             # Next.js (React-based UI)
+├── WebInterface/andritz_ai             # Next.js (React-based UI)
 │   └── pages/
 │
-├── backend/              # Node.js API server
+├── API/                                # Node.js API server
 │   └── routes/
 │
-├── python-service/       # Python service for AI & analytics
-│   └── app.py
-│
-├── sql/                  # SQL scripts and schema definitions
+├── Modelo/src                          # Python service for AI & analytics
+│   └── main.py
 │
 └── README.md
 ```
