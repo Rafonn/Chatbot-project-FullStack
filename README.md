@@ -1,6 +1,6 @@
 # AI Chatbot Platform
 
-##Important: The aplication is now using C# API, available here: https://github.com/Rafonn/WS-API
+## Important: The aplication is now using C# API, available here: https://github.com/Rafonn/WS-API
 
 An intelligent chatbot platform that combines modern web technologies to deliver interactive conversations and data-driven insights. You can transfer from online research to internal research. It features a **Next.js frontend**, a **C# backend** for database communication, **Python services** for OpenAI-powered responses and analytics, and **SQL Server** for persistent storage.
 
