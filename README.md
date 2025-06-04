@@ -25,7 +25,7 @@ An intelligent chatbot platform that combines modern web technologies to deliver
 | Layer       | Technology        | Purpose                                       |
 | ----------- | ----------------- | --------------------------------------------- |
 | Frontend    | Next.js (React)   | User interface, chat window, login/register   |
-| Backend API | Node.js + Express | Auth, DB access, API bridge to Python service |
+| Backend API | C# or Node.js     | Auth, DB access, API bridge to Python service |
 | AI Engine   | Python            | Data processing, OpenAI API integration       |
 | Database    | SQL Server        | Stores users, chat history                    |
 | AI API      | OpenAI GPT API    | Generates intelligent responses and summaries |
