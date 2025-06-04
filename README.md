@@ -12,7 +12,7 @@ An intelligent chatbot platform that combines modern web technologies to deliver
 [Frontend - Next.js]
         |
         v
-[Node.js API Server] ───> [SQL Server: users & chat logs]
+[C# API or Node.js API Server] ───> [SQL Server: users & chat logs]
                                 |
                                 v
 [Python Service: OpenAI + Data Analysis]
