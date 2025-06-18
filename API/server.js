@@ -11,9 +11,9 @@ const app = express();
 const port = process.env.PORT;
 
 const dbConfig = {
-  user: process.env.DB_USER,
+  user: process.env.DB_USER_DEV,
   password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
+  server: process.env.DB_SERVER_DEV,
   database: process.env.DB_NAME,
   options: {
     encrypt: false,

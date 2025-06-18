@@ -4,9 +4,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const config = {
-  user: process.env.DB_USER,
+  user: process.env.DB_USER_DEV,
   password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
+  server: process.env.DB_SERVER_DEV,
   database: process.env.DB_NAME,
   options: {
     encrypt: false,

@@ -156,9 +156,9 @@ if __name__ == "__main__":
     opcua_client = OPCUAClient(
         url=os.getenv("OPCUA_IP"),
         machines_dict=machines,
-        server=os.getenv("DB_SERVER"),
+        server=os.getenv("DB_SERVER_DEV"),
         database=os.getenv("DB_NAME_CONVERSATION"),
-        user=os.getenv("DB_USER"),
+        user=os.getenv("DB_USER_DEV"),
         password=os.getenv("DB_PASSWORD")
     )
     opcua_client.connect()

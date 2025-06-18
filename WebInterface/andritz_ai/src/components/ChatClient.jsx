@@ -20,6 +20,7 @@ export default function Chatbot({ email }) {
     const heartbeatInterval = useRef(null);
     const { data: session, status } = useSession();
     const router = useRouter();
+    const didConnectRef = useRef(false);
 
     useEffect(() => {
         async function sendHeartbeat() {
@@ -42,6 +43,9 @@ export default function Chatbot({ email }) {
 
         const handleBeforeUnload = async () => {
             try {
+                if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+                window.removeEventListener("beforeunload", handleBeforeUnload);
+
                 await fetch("/api/presence/logout", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -52,18 +56,6 @@ export default function Chatbot({ email }) {
             }
         };
         window.addEventListener("beforeunload", handleBeforeUnload);
-
-        return () => {
-            if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-
-            fetch("/api/presence/logout", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userEmail: email }),
-            }).catch(() => {
-            });
-        };
     }, [email]);
 
     const handleLogout = () => {
@@ -88,7 +80,7 @@ export default function Chatbot({ email }) {
 
     useEffect(() => {
         const userId = email;
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/logs/toggle`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_C_DEV}/logs/toggle`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ toggle: false, userId }),
@@ -104,49 +96,59 @@ export default function Chatbot({ email }) {
 
     const connectWebSocket = () => {
         const userId = email;
-        const ws = new WebSocket(
-            `${process.env.NEXT_PUBLIC_WS_URL}?userId=${encodeURIComponent(userId)}`
-        );
+        if (socketRef.current && socketRef.current.readyState !== WebSocket.CLOSED) {
+            socketRef.current.close();
+        }
+
+        const wsUrl = `ws://localhost:5148/ws?userId=${encodeURIComponent(userId)}`;
+
+        const ws = new WebSocket(wsUrl);
         socketRef.current = ws;
 
-        let pingInterval;
-
         ws.onopen = () => {
-            console.log('WebSocket conectado');
-            setLoading(false);
-            // ping de aplicação (opcional)
-            pingInterval = setInterval(() => {
-                ws.send(JSON.stringify({ type: 'ping' }));
-            }, 30000);
+            console.log("Conexão WebSocket estabelecida com sucesso!");
         };
 
         ws.onmessage = (event) => {
-            const { botMessage, botTimeStamp, error } = JSON.parse(event.data);
-            if (error) {
-                console.error('Erro recebido no WS:', error);
-            } else {
-                setMessages(prev => [
-                    ...prev,
-                    { text: botMessage, sender: 'bot', time: botTimeStamp }
-                ]);
+            let dataObject;
+            try {
+                dataObject = JSON.parse(event.data);
+            } catch (e) {
+                console.error("ERRO FATAL: O dado recebido não é um JSON válido! Verifique o backend.", e);
+                return;
             }
-            setLoading(false);
-        };
 
-        ws.onerror = (err) => {
-            console.error('WebSocket error:', err.message);
-            ws.close();
+            if (dataObject && typeof dataObject === 'object' && 'lastLog' in dataObject) {
+                const { lastLog } = dataObject;
+
+                if (lastLog !== null && lastLog !== undefined) {
+                    setMessages(prev => [...prev, { text: lastLog, sender: 'bot', time: new Date().toISOString() }]);
+                } else {
+                    console.warn("AVISO: A chave 'lastLog' veio com valor nulo ou indefinido.");
+                }
+
+            } else {
+                console.error("ERRO FATAL: O objeto recebido NÃO CONTÉM a chave 'lastLog'");
+                console.log("Objeto recebido:", dataObject);
+            }
         };
 
         ws.onclose = (e) => {
-            console.log('WebSocket desconectado, tentando reconectar em 1s', e.reason);
-            clearInterval(pingInterval);
-            setTimeout(connectWebSocket, 1000);
+            if (!e.wasClean) {
+                setTimeout(connectWebSocket, 2000);
+            }
+        };
+
+        ws.onerror = (errorEvent) => {
+            console.error("[ERRO DE CONEXÃO WEBSOCKET]", errorEvent);
         };
     };
 
     useEffect(() => {
-        connectWebSocket();
+        if (!didConnectRef.current) {
+            didConnectRef.current = true;
+            connectWebSocket();
+        }
         return () => {
             socketRef.current?.close();
         };
@@ -155,9 +157,8 @@ export default function Chatbot({ email }) {
 
     const handleToggleChange = async (e) => {
         const toggle = e.target.checked;
-        console.log("Valor do toggle:", toggle);
         const userId = email;
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logs/toggle`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_C_DEV}/logs/toggle`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ toggle, userId }),
@@ -180,7 +181,7 @@ export default function Chatbot({ email }) {
         setInput("");
 
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logs/user`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_C_DEV}/logs/user`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ log: textToSend, userId }),

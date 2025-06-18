@@ -3,6 +3,7 @@ import openai
 import traceback
 import time
 import threading
+import json
 from multiprocessing import Process, set_start_method
 from dotenv import load_dotenv
 
@@ -16,6 +17,7 @@ from prompts.prompts import Prompts
 from prompts.prompts import commands
 from dude.formated_machines import formated_machines
 from dude.filter import Filter
+from customers.customer import Customer
 
 class RestartException(Exception):
     pass
@@ -80,6 +82,20 @@ class ChatAndritz:
         
         filter = Filter(dude, user)
         self._log_and_print(filter.filter_order())
+
+    def _customer(self, user):
+        query_selection = Customer()
+        customer_options = Prompts()
+        customer = customer_options.costumer_identify(user)
+        customer_context = customer_options.costumer_product_identify(user)
+        res = ""
+
+        if customer_context.lower == "cliente":
+            res = query_selection.fetch_customer(customer)
+        if customer_context.lower == "produto":
+            res = query_selection.fetch_product(customer)
+
+        self._log_and_print(res)
     
     def _identificar_contexto(self, user_input):
         tabelas = self._listar_tabelas()
@@ -87,15 +103,15 @@ class ChatAndritz:
 
         escolha = context.context_identify(user_input, tabelas, machines_names)
         print(f"Escolha: {escolha}")
-        if escolha in tabelas and escolha.lower() != "machine":
-            dados = self._consultar_tabela(escolha)
+        if escolha in tabelas and escolha.lower():
+            data = self._consultar_tabela(escolha)
 
-            if not dados:
+            if not data:
                 self._log_and_print("A tabela está vazia.")
                 return
             
             table = Prompts()
-            self._log_and_print(table.table_identidy(dados, escolha))
+            self._log_and_print(table.table_identidy(data, escolha))
 
         elif escolha.lower() == "machine":
             self._escolher_maquina(user_input)
@@ -103,6 +119,8 @@ class ChatAndritz:
             self._escolher_produto(user_input)
         elif escolha.lower() == "dude":
             self._dude(user_input)
+        elif escolha.lower() == "vendas":
+            self._customer(user_input)
         else:
             self._log_and_print("Não identifiquei tabela. Pode tentar de novo?")
     
@@ -152,7 +170,7 @@ if __name__ == "__main__":
         set_start_method('spawn')
     except RuntimeError:
         pass
-
+    
     users = SqlServerUserFetcher()
 
     active_processes = {}

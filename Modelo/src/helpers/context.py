@@ -6,9 +6,9 @@ class Context:
     def __init__(self):
         load_dotenv()
 
-        self.server   = os.getenv('DB_SERVER')
+        self.server   = os.getenv('DB_SERVER_DEV')
         self.database = os.getenv('DB_NAME_CONVERSATION')
-        self.username = os.getenv('DB_USER')
+        self.username = os.getenv('DB_USER_DEV')
         self.password = os.getenv('DB_PASSWORD')
         self.driver = "{ODBC Driver 17 for SQL Server}"
 

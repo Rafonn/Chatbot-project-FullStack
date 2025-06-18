@@ -50,12 +50,21 @@ class Prompts:
         if(res.lower() == "vazio"):
             prompt = f"""
                 O usuário enviou a seguinte mensagem: {message}
-                Se a mensagem contiver alguma palavra como: "produto", "pano", "cliente", podendo ser plural ou singular, responda "produto".
+                Se a mensagem contiver alguma palavra como: "cliente", "clientes" podendo ser plural ou singular, responda "vendas".
+                Senão, responda com "vazio". ANALISE BEM A PALVRA E A LOGICA QUE VOCE IRA USAR. OBS:
+                Responda APENAS com "vazio" ou "vendas". Sem aspas, pontuações e tudo em minusculo.
+                """
+            res = self._send_model([{"role": "user", "content": prompt}])
+
+        if(res.lower() == "vazio"):
+            prompt = f"""
+                O usuário enviou a seguinte mensagem: {message}
+                Se a mensagem contiver alguma palavra como: "produto", "pano", podendo ser plural ou singular, responda "produto".
                 A palavra deve ser identificada baseada
                 no contexto do usuário. Por isso, caso ele escreva "tecelagem", a resposta seria "vazio", pois ele quer saber
                 sobre a tecelagem e não sobre o produto em si.
                 Senão, responda com "vazio". ANALISE BEM A PALVRA E PENSE NA LOGICA QUE VOCE IRA USAR. OBS:
-                Responda APENAS com "vazio" ou "machine". Sem aspas, pontuações e tudo em minusculo.
+                Responda APENAS com "vazio" ou "produto". Sem aspas, pontuações e tudo em minusculo.
             """
             res = self._send_model([{"role": "user", "content": prompt}])
 
@@ -80,6 +89,29 @@ class Prompts:
         
         return res
     
+    def costumer_identify(self, message):
+        costumer_prompt = f"""
+            O user escreveu: "{message}"
+            ANALISE BEM A MENSAGEM DO USUARIO.
+            Identifique nessa lista: "lista", a qual cliente o usuário se refere.
+            RESPONDA APENAS COM O CLIENTE QUE O USUARIO SE REFERE OU "vazio", SEM ASPAS E PONTUAÇÕES.
+        """
+        
+        return self._send_model([{"role": "user", "content": costumer_prompt}])
+
+    def costumer_product_identify(self, message):
+
+        costumer_context_prompt = f"""
+            O user escreveu: "{message}"
+            ANALISE BEM A MENSAGEM DO USUARIO.
+            Identifique se a mensagem se refere a algo como “me passa a relação dos clientes com o nome XXXXX”
+            ou algo como “me passe o status dos produtos do cliente: XXXXX”.
+            Caso seja mais parecido com a primeira frase responda "cliente", caso seja parecida com a segunda frase
+            responda "produto". RESPONDA APENAS COM "cliente" ou "produto".
+        """
+
+        return self._send_model([{"role": "user", "content": costumer_context_prompt}])
+
     def dude_identify(self, message, machines):
         search_options = []
 
@@ -156,7 +188,7 @@ class Prompts:
         
     def table_identidy(self, data, choice):
         prompt = f"""
-            Gere uma resposta amigável com os dados da tabela '{choice}':
+            Gere uma resposta amigável com os dados da tabela. IMPORTANTE: NÃO RESUMA NADA, MOSTRE OS DADOS COMPLETOS '{choice}':
             {json.dumps(data, indent=2, ensure_ascii=False)}
             """
         

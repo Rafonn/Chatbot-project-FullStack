@@ -8,9 +8,9 @@ class Conversation:
 
         self.message = message
         self.user_id = user_id
-        self.server   = os.getenv('DB_SERVER')
+        self.server   = os.getenv('DB_SERVER_DEV')
         self.database = os.getenv('DB_NAME')
-        self.username = os.getenv('DB_USER')
+        self.username = os.getenv('DB_USER_DEV')
         self.password = os.getenv('DB_PASSWORD')
         self.conn = self.connect_to_db()
 

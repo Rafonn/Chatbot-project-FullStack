@@ -6,9 +6,9 @@ class SqlServerUserFetcher:
     def __init__(self):
         load_dotenv()
 
-        self.server   = os.getenv('DB_SERVER')
+        self.server   = os.getenv('DB_SERVER_DEV')
         self.database = os.getenv('DB_NAME')
-        self.username = os.getenv('DB_USER')
+        self.username = os.getenv('DB_USER_DEV')
         self.password = os.getenv('DB_PASSWORD')
         self.table_name = "ActiveUsers"
         self.email_column = "UserEmail"
@@ -16,6 +16,7 @@ class SqlServerUserFetcher:
         self.driver = "{ODBC Driver 17 for SQL Server}"
 
     def _get_connection(self):
+
         conn_str = (
             f"DRIVER={self.driver};"
             f"SERVER={self.server};"
@@ -23,6 +24,7 @@ class SqlServerUserFetcher:
             f"UID={self.username};"
             f"PWD={self.password}"
         )
+        
         return pyodbc.connect(conn_str)
 
     def get_user_ids(self) -> list:
