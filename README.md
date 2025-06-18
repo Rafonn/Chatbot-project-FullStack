@@ -40,7 +40,7 @@ O repositório é organizado nas seguintes pastas:
 * **Bibliotecas notáveis (deduzidas pelos nomes dos arquivos):**
     * `src/customers/customer.py`: Lógica relacionada a clientes.
     * `src/db_logs/receive.py`, `src/db_logs/toggleReceive.py`: Possivelmente para gerenciamento de logs de banco de dados.
-    * `src/dude/`: Parece conter lógica para alguma entidade "dude", com `controller.py`, `dude.py`, `filter.py`, `formated_machines.py`.
+    * `src/dude/`: lógica para alguma entidade "dude", com `controller.py`, `dude.py`, `filter.py`, `formated_machines.py`.
     * `src/helpers/context.py`, `src/helpers/users.py`: Utilitários e gerenciamento de contexto/usuários.
     * `src/machine_data/`: Módulos para dados de máquinas (`machineName.py`, `machines_ids.py`, `node_id_map.py`, `status.py`).
     * `src/machines/machines.py`: Lógica principal para máquinas.
