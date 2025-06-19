@@ -1,4 +1,3 @@
-# Exemplo de como você poderia indexar seus dados (fora da classe Prompts, talvez um script de inicialização)
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
