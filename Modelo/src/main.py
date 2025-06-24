@@ -18,6 +18,7 @@ from prompts.prompts import commands
 from dude.formated_machines import formated_machines
 from dude.filter import Filter
 from customers.customer import Customer
+from prompts.AdvancedPrompts import AdvancedPrompts
 
 class RestartException(Exception):
     pass
@@ -76,7 +77,7 @@ class ChatAndritz:
         self._log_and_print(product.product_identify(user))
     
     def _dude(self, user):
-        dude_options = Prompts()
+        dude_options = AdvancedPrompts()
         machines_str = "\n".join(formated_machines)
         dude = dude_options.dude_identify(user, machines_str)
         

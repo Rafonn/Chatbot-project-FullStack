@@ -2,7 +2,6 @@ import os
 import openai
 import json
 from dotenv import load_dotenv
-from prompts.commands import commands
 from machines.machines import machines_names
 from machine_data.machineName import MachineInfoSQL
 from product_data.productName import ProductInfoSQL
@@ -14,9 +13,20 @@ class Prompts:
         self.api_key = os.getenv('API_KEY')
         openai.api_key = self.api_key
 
+    """ def _new_send_model(self, message):
+        try:
+            response = client.responses.create(
+                model="gpt-4o",
+                instructions="You are a coding assistant that talks like a pirate.",
+                input="How do I check if a Python object is an instance of a class?",
+            )
+            return response.output_text
+        except Exception as e:
+            return f"Erro ao acessar a API: {e}" """
+
     def _send_model(self, message):
         try:
-            resp = openai.ChatCompletion.create(
+            resp = openai.chat.completions.create(
                 model="gpt-4o",
                 messages=message,
             )
