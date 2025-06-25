@@ -122,7 +122,7 @@ class Prompts:
 
         return self._send_model([{"role": "user", "content": costumer_context_prompt}])
 
-    def dude_identify(self, message, machines):
+    def dude_identify(self, message):
         search_options = []
 
         date_prompt = f"""
@@ -154,7 +154,7 @@ class Prompts:
             O user escreveu: "{message}"
             ANALISE BEM A MENSAGEM DO USUARIO.
             - Se a mensagem contiver alguma palvra PARECIDA, podendo começar com a palavra ou não
-              com um dos valores em: "{machines}", retornar esse valor. Por exemplo: "tear 1" -> "Tear 01 - Jager TP100"
+              com um dos valores em: "{machines_names}", retornar esse valor. Por exemplo: "tear 1" -> "Tear 01 - Jager TP100"
             - Caso contrário, retornar "vazio".
 
             RESPONDA APENAS COM A PALAVRA OU "vazio" sem aspas e sem pontuações.

@@ -1,169 +1,54 @@
-import os
-import openai
 import traceback
 import time
-import threading
-import json
 from multiprocessing import Process, set_start_method
-from dotenv import load_dotenv
 
+from main_agent import IntelligentAssistant
 from db_logs.receive import LastMessageFetcher
-from db_logs.toggleReceive import ToggleButtonStatus
 from user_conversation.conversation import Conversation
 from helpers.users import SqlServerUserFetcher
-from helpers.context import Context
-from machines.machines import machines_names
-from prompts.prompts import Prompts
-from prompts.prompts import commands
-from dude.formated_machines import formated_machines
-from dude.filter import Filter
-from customers.customer import Customer
-from prompts.AdvancedPrompts import AdvancedPrompts
 
-class RestartException(Exception):
-    pass
+from langchain_core.messages import AIMessage, HumanMessage
 
 class ChatAndritz:
     def __init__(self, user_id):
         self.user_id = user_id
-
         self.message_fetcher = LastMessageFetcher(self.user_id)
-
-        self.receive_toggle = ToggleButtonStatus(self.user_id)
-
-        self.history = [{"role": "system", "content": commands["initial"]}]
-
-        self.verify_state = self._verify_input()
-        self.restart_flag = threading.Event()
-        self.monitor_thread = threading.Thread(target=self._monitor_input, daemon=True)
-        self.monitor_thread.start()
-    
-    def _monitor_input(self):
-        while True:
-            current = self._verify_input()
-            if current != self.verify_state:
-                self.verify_state = current
-                self.restart_flag.set()
-            time.sleep(0.1)
-
-    def _check_restart(self):
-        if self.restart_flag.is_set():
-            self._log_and_print("⚠️ Mudança detectada! Reiniciando verificações...")
-            return True
-        return False
+        self.assistant = IntelligentAssistant()
+        self.chat_history = []
 
     def _log_and_print(self, message):
+        if not message: return
+        
         conv = Conversation(message, self.user_id)
         conv.botResponse()
-
-    def _verify_input(self):
-        key = ToggleButtonStatus(self.user_id)
-        return key.fetch_status()
-
-    def _listar_tabelas(self):
-        tabel = Context()
-        return tabel.listar_tabelas_sql_server()
-    
-    def _consultar_tabela(self, nome_tabela):
-        data = Context()
-        return data.consultar_tabela(nome_tabela)
-
-    def _escolher_maquina(self, user):
-        machine = Prompts()
-        self._log_and_print(machine.machine_identify(user))
-    
-    def _escolher_produto(self, user):
-        product = Prompts()
-        self._log_and_print(product.product_identify(user))
-    
-    def _dude(self, user):
-        dude_options = AdvancedPrompts()
-        machines_str = "\n".join(formated_machines)
-        dude = dude_options.dude_identify(user, machines_str)
-        
-        filter = Filter(dude, user)
-        self._log_and_print(filter.filter_order())
-
-    def _customer(self, user):
-        query_selection = Customer()
-        customer_options = Prompts()
-        customer = customer_options.costumer_identify(user)
-        customer_context = customer_options.costumer_product_identify(user)
-        res = ""
-
-        if customer_context.lower == "cliente":
-            res = query_selection.fetch_customer(customer)
-        if customer_context.lower == "produto":
-            res = query_selection.fetch_product(customer)
-
-        self._log_and_print(res)
-    
-    def _identificar_contexto(self, user_input):
-        tabelas = self._listar_tabelas()
-        context = Prompts()
-
-        escolha = context.context_identify(user_input, tabelas, machines_names)
-        print(f"Escolha: {escolha}")
-        if escolha in tabelas and escolha.lower():
-            data = self._consultar_tabela(escolha)
-
-            if not data:
-                self._log_and_print("A tabela está vazia.")
-                return
-            
-            table = Prompts()
-            self._log_and_print(table.table_identidy(data, escolha))
-
-        elif escolha.lower() == "machine":
-            self._escolher_maquina(user_input)
-        elif escolha.lower() == "produto":
-            self._escolher_produto(user_input)
-        elif escolha.lower() == "dude":
-            self._dude(user_input)
-        elif escolha.lower() == "vendas":
-            self._customer(user_input)
-        else:
-            self._log_and_print("Não identifiquei tabela. Pode tentar de novo?")
     
     def _esperar_entrada_usuario(self):
-        while not self.restart_flag.is_set():
-            nova = self.message_fetcher.fetch_last_message()
-            if nova:
-                return nova
-
+        while True:
+            nova_mensagem = self.message_fetcher.fetch_last_message()
+            if nova_mensagem: return nova_mensagem
             time.sleep(0.5)
 
     def chat(self):
+
         while True:
-            try:
-                while True:
-                    if self.restart_flag.is_set():
-                        raise RestartException()
+            user_message = self._esperar_entrada_usuario()
+            bot_response = self.assistant.run(user_message, self.chat_history)
+    
+            self.chat_history.append(HumanMessage(content=user_message))
+            self.chat_history.append(AIMessage(content=bot_response))
+            
+            if len(self.chat_history) > 20:
+                self.chat_history = self.chat_history[-20:]
 
-                    if self._verify_input():
-                        user = self._esperar_entrada_usuario()
-                        self._identificar_contexto(user)
-                    else:
-                        user = self._esperar_entrada_usuario()
-                        response = Prompts()
-                        bot_response = response.default_prompt(self.history, user)
-                        self.history.append({"role": "user", "content": user})
-                        self.history.append({"role": "assistant", "content": bot_response})
-                        self._log_and_print(bot_response)
-            except RestartException:
-                self._log_and_print("⚠️ Mudança detectada! Reiniciando verificações...")
-                self.restart_flag.clear()
+            print(f"[{self.user_id}] Resposta do Bot: '{bot_response}'")
+            self._log_and_print(bot_response)
 
-def start_chat_for_user(user_id, empty = ""):
+def start_chat_for_user(user_id):
     try:
         bot = ChatAndritz(user_id=user_id)
-    except Exception:
-        traceback.print_exc()
-        return
-
-    try:
         bot.chat()
     except Exception:
+        print(f"O processo para o usuário {user_id} encontrou um erro fatal.")
         traceback.print_exc()
 
 if __name__ == "__main__":
@@ -173,26 +58,33 @@ if __name__ == "__main__":
         pass
     
     users = SqlServerUserFetcher()
-
     active_processes = {}
     POLL_INTERVAL = 60
 
     while True:
-        current_ids = set(users.get_user_ids())
-        running_ids = set(active_processes.keys())
+        try:
+            current_ids = set(users.get_user_ids())
+            running_ids = set(active_processes.keys())
 
-        for uid in (current_ids - running_ids):
-            p = Process(
-                target=start_chat_for_user,
-                args=(uid, ""),
-                name=f"ChatAndritz-{uid}"
-            )
-            p.daemon = True
-            p.start()
-            active_processes[uid] = p
+            for uid in (current_ids - running_ids):
+                print(f"Novo usuário detectado: {uid}. Iniciando processo de chat.")
+                
+                p = Process(
+                    target=start_chat_for_user,
+                    args=(uid,),
+                    name=f"ChatAndritz-{uid}"
+                )
+                p.daemon = True
+                p.start()
+                active_processes[uid] = p
 
-        for uid, p in list(active_processes.items()):
-            if not p.is_alive():
-                active_processes.pop(uid)
+            for uid, p in list(active_processes.items()):
+                if not p.is_alive():
+                    active_processes.pop(uid)
 
-        time.sleep(POLL_INTERVAL)
+            time.sleep(POLL_INTERVAL)
+
+        except Exception as e:
+            print(f"Erro no loop principal do gerenciador de processos: {e}")
+            traceback.print_exc()
+            time.sleep(POLL_INTERVAL)

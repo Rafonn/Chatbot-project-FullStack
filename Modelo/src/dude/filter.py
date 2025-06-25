@@ -99,5 +99,5 @@ class Filter:
         """
 
 if __name__ == "__main__":
-    teste = Filter(["vazio", "vazio", "vazio"], 'quero saber sobre a ordem no dude')
+    teste = Filter(["vazio", "Completed", "vazio"], 'quero saber sobre a ordem no dude')
     print(teste.filter_order())
