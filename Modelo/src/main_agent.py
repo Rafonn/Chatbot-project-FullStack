@@ -2,11 +2,11 @@ import os
 import json
 import pyodbc
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
 
 from machines.formated_machines import formated_machines
 from machines.machines import machines_names
 from dude.filter import Filter
+from cache.cache import ManualCachedEmbedder
 
 from langchain_openai import ChatOpenAI
 from langchain_community.vectorstores import Chroma
@@ -15,9 +15,10 @@ from langchain.tools.retriever import create_retriever_tool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_core.tools import tool
 from langchain import hub
-from langchain_core.messages import AIMessage, HumanMessage
 from typing import Optional
 from thefuzz import process
+from langchain.globals import set_llm_cache
+from langchain_redis.cache import RedisCache
 
 load_dotenv()
 
@@ -157,8 +158,15 @@ def search_service_orders_api(user_input: str, equipment_name: Optional[str] = N
     return result
 
 class IntelligentAssistant:
-    def __init__(self, persist_directory="./my_rag_db_index"):
-        print("Inicializando o Assistente Inteligente...")
+    def __init__(self, persist_directory="./rag_db_index"):
+
+        load_dotenv()
+        
+        try:
+            redis_url = "redis://localhost:6379/0"
+            set_llm_cache(RedisCache(redis_url=redis_url))
+        except Exception as e:
+            print(f"AVISO: Cache de LLM com Redis desativado. Erro: {e}")
 
         self.llm = ChatOpenAI(model="gpt-4o", temperature=0)
         self.tools = self._create_tools(persist_directory)
@@ -168,21 +176,29 @@ class IntelligentAssistant:
         agent = create_openai_functions_agent(self.llm, self.tools, prompt)
 
         self.agent_executor = AgentExecutor(agent=agent, tools=self.tools, verbose=True)
-        
-        print("Assistente pronto!")
 
     def _create_tools(self, persist_directory: str) -> list:
+
+        base_embedder = OpenAIEmbeddings(model="text-embedding-3-small")
+        cached_embedder = ManualCachedEmbedder(base_embedder=base_embedder)
+        
         vectorstore = Chroma(
             persist_directory=persist_directory, 
-            embedding_function=OpenAIEmbeddings(model="text-embedding-3-small")
+            embedding_function=cached_embedder
         )
-
         retriever = vectorstore.as_retriever(search_kwargs={'k': 3})
-
         documentation_retriever_tool = create_retriever_tool(
-            retriever, "documentation_search", "Use esta ferramenta para buscar informações sobre documentos, processos e procedimentos fixos da empresa...")
-        
-        return [get_live_machine_status, get_live_product_status, search_service_orders_api, get_live_general_status, documentation_retriever_tool]
+            retriever,
+            "documentation_search",
+            "Use esta ferramenta para buscar informações sobre documentos, processos e procedimentos fixos da empresa..."
+        )
+        return [
+            get_live_machine_status, 
+            get_live_product_status, 
+            search_service_orders_api, 
+            get_live_general_status, 
+            documentation_retriever_tool
+        ]
 
     def run(self, user_input: str, chat_history: list) -> str:
         try:
@@ -194,7 +210,6 @@ class IntelligentAssistant:
             return response.get('output', "Não obtive uma resposta.")
         
         except Exception as e:
-            print(f"\nOcorreu um erro inesperado durante a execução do agente: {e}")
             return "Desculpe, enfrentei um problema técnico e não consegui processar sua solicitação."
 
     def start_chat(self):

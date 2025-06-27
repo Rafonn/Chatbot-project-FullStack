@@ -18,7 +18,6 @@ class RAGIndexer:
         self.embeddings = OpenAIEmbeddings(model=embedding_model)
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         self.db_config = db_config 
-        print(f"RAGIndexer inicializado com persist_directory='{self.persist_directory}' e modelo de embedding='{embedding_model}'.")
 
     def _get_db_connection(self):
         if not self.db_config:
@@ -30,7 +29,6 @@ class RAGIndexer:
                     f"PWD={self.db_config['pwd']};charset='UTF-8'")
         try:
             conn = pyodbc.connect(conn_str)
-            print(f"Conexão com o SQL Server ({self.db_config['server']}) estabelecida.")
             return conn
         except pyodbc.Error as ex:
             print(f"Erro ao conectar ao SQL Server: {ex}")
@@ -57,7 +55,7 @@ class RAGIndexer:
                 with conn.cursor() as cursor:
                     cursor.execute(f"SELECT * FROM {table_name}")
                     columns = [column[0] for column in cursor.description]
-                    print(f"Buscando dados da tabela '{table_name}' (método SQL padrão)...")
+
                     for row in cursor.fetchall():
                         row_dict = dict(zip(columns, row))
                         doc = self._extract_content_and_metadata(row_dict, table_name, name_column, doc_type)
@@ -96,7 +94,6 @@ class RAGIndexer:
         return documents
     
     def index_data(self):
-        print("\nIniciando indexação de dados de DOCUMENTAÇÃO para RAG...")
         all_documents = []
 
         all_documents.extend(self._load_data_from_sql(table_name="products", name_column="product_name", doc_type="product"))
@@ -113,11 +110,9 @@ class RAGIndexer:
             print("Nenhum dado encontrado para indexar. Indexação abortada.")
             return
 
-        print(f"\nFragmentando {len(all_documents)} documentos...")
         chunks = self.text_splitter.split_documents(all_documents)
         print(f"Total de fragmentos gerados: {len(chunks)}")
 
-        print(f"Gerando embeddings e armazenando no ChromaDB em '{self.persist_directory}'...")
         try:
             Chroma.from_documents(
                 documents=chunks, 
@@ -138,5 +133,5 @@ if __name__ == "__main__":
         'pwd': os.getenv("DB_PASSWORD") 
     }
     
-    indexer = RAGIndexer(persist_directory="./chromaDB", db_config=sql_config)
+    indexer = RAGIndexer(persist_directory="./rag_db_index", db_config=sql_config)
     indexer.index_data()
