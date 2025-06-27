@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
 from machines.formated_machines import formated_machines
+from machines.machines import machines_names
 from dude.filter import Filter
 
 from langchain_openai import ChatOpenAI
@@ -29,9 +30,45 @@ sql_server_config = {
 }
 
 @tool
-def get_live_machine_status(machine_name: str) -> str:
+def get_live_general_status() -> str:
+    """Use esta ferramenta para obter o status em tempo real das maquinas e produtos. Quando não for informado uma máquina específica, retorna o status geral de todas as máquinas e produtos."""
+        
+    conn_str = (f"DRIVER={sql_server_config['driver']};SERVER={sql_server_config['server']};"
+                f"DATABASE={sql_server_config['database']};UID={sql_server_config['uid']};"
+                f"PWD={sql_server_config['pwd']};charset='UTF-8'")
+    try:
+        with pyodbc.connect(conn_str) as conn:
+            with conn.cursor() as cursor:
+                query = """
+                            SELECT * FROM products_status JOIN
+                            machines_status ON products_status.machine_name = machines_status.machine_name;
+                        """
+                cursor.execute(query)
+                columns = [column[0] for column in cursor.description]
+                rows = cursor.fetchall()
+
+                if not rows:
+                    return f"Nenhum dado encontrado'."
+                
+                data = [dict(zip(columns, row)) for row in rows]
+
+                return json.dumps(data, ensure_ascii=False, indent=2)
+    except Exception as e:
+        return f"Ocorreu um erro ao conectar ao banco de dados: {e}"
+
+@tool
+def get_live_machine_status(machine_name_db: str) -> str:
     """Use esta ferramenta para obter o status em tempo real de uma máquina ou tear específico. Forneça o nome ou identificador da máquina."""
 
+    canonical_equipment_name = None
+    if machine_name_db:
+        best_match, score = process.extractOne(machine_name_db, machines_names)
+        print(best_match, score)
+        if score >= 80:
+            canonical_equipment_name = best_match
+        else:
+            return f"Equipamento '{machine_name_db}' não encontrado na lista de máquinas válidas."
+        
     conn_str = (f"DRIVER={sql_server_config['driver']};SERVER={sql_server_config['server']};"
                 f"DATABASE={sql_server_config['database']};UID={sql_server_config['uid']};"
                 f"PWD={sql_server_config['pwd']};charset='UTF-8'")
@@ -39,12 +76,45 @@ def get_live_machine_status(machine_name: str) -> str:
         with pyodbc.connect(conn_str) as conn:
             with conn.cursor() as cursor:
                 query = "SELECT * FROM machines_status WHERE machine_name LIKE ?"
-                cursor.execute(query, f'%{machine_name}%')
+                cursor.execute(query, f'%{canonical_equipment_name}%')
                 columns = [column[0] for column in cursor.description]
                 row = cursor.fetchone()
 
                 if not row:
-                    return f"Nenhuma máquina encontrada com o nome parecido com '{machine_name}'."
+                    return f"Nenhuma máquina encontrada com o nome parecido com '{canonical_equipment_name}'."
+                
+                data = dict(zip(columns, row))
+
+                return json.dumps(data, ensure_ascii=False, indent=2)
+    except Exception as e:
+        return f"Ocorreu um erro ao conectar ao banco de dados: {e}"
+    
+@tool
+def get_live_product_status(machine_name_db: str) -> str:
+    """Use esta ferramenta para obter o status em tempo real de um PRODUTO específico. Forneça o nome ou identificador da máquina."""
+
+    canonical_equipment_name = None
+    if machine_name_db:
+        best_match, score = process.extractOne(machine_name_db, machines_names)
+
+        if score >= 80:
+            canonical_equipment_name = best_match
+        else:
+            return f"Equipamento '{machine_name_db}' não encontrado na lista de máquinas válidas."
+        
+    conn_str = (f"DRIVER={sql_server_config['driver']};SERVER={sql_server_config['server']};"
+                f"DATABASE={sql_server_config['database']};UID={sql_server_config['uid']};"
+                f"PWD={sql_server_config['pwd']};charset='UTF-8'")
+    try:
+        with pyodbc.connect(conn_str) as conn:
+            with conn.cursor() as cursor:
+                query = "SELECT * FROM products_status WHERE machine_name LIKE ?"
+                cursor.execute(query, f'%{canonical_equipment_name}%')
+                columns = [column[0] for column in cursor.description]
+                row = cursor.fetchone()
+
+                if not row:
+                    return f"Nenhuma máquina encontrada com o nome parecido com '{canonical_equipment_name}'."
                 
                 data = dict(zip(columns, row))
 
@@ -57,9 +127,9 @@ def search_service_orders_api(user_input: str, equipment_name: Optional[str] = N
     """
     Busca ordens de serviço em uma API externa (Dude). Use sempre que o usuário perguntar sobre ordens de serviço, OS, ou chamados no Dude.
     - user_input: A entrada original do usuário, necessária para a classe Filter.
-    - equipment_name: O nome do equipamento ou máquina a ser consultado.
     - status: O status da ordem de serviço. Valores permitidos: 'New Request', 'Completed', 'In Progress'.
-    - date_iso: A data da consulta no formato 'YYYY-MM-DD'. O agente pode converter 'hoje' ou 'ontem' para este formato.
+    - equipment_name: O nome do equipamento ou máquina a ser consultado.
+    - date_iso: Estamos em 2025. A data da consulta no formato 'YYYY-MM-DDThh-mm-ss'. O agente pode converter 'hoje' ou 'ontem' para este formato.
     """
     print(f"--- ATIVANDO FERRAMENTA: search_service_orders_api ---")
     print(f"Parâmetros recebidos: Equipamento='{equipment_name}', Status='{status}', Data='{date_iso}'")
@@ -67,29 +137,19 @@ def search_service_orders_api(user_input: str, equipment_name: Optional[str] = N
     canonical_equipment_name = None
     if equipment_name:
         best_match, score = process.extractOne(equipment_name, formated_machines)
-
         if score >= 80:
             canonical_equipment_name = best_match
-        else:
-            return f"Equipamento '{equipment_name}' não encontrado na lista de máquinas válidas."
     
     api_body_list = ["vazio", "vazio", "vazio"]
 
     if date_iso:
-        try:
-            parsed_date = datetime.fromisoformat(date_iso.replace("Z", "+00:00"))
-            api_body_list[0] = parsed_date.strftime('%Y-%m-%d')
-        except ValueError:
-            api_body_list[0] = date_iso
-
-    if canonical_equipment_name:
-        api_body_list[1] = canonical_equipment_name
+        api_body_list[0] = date_iso
 
     if status:
-        api_body_list[2] = status
+        api_body_list[1] = status
 
-    if all(v == "vazio" for v in api_body_list):
-        return "Por favor, para buscar uma ordem de serviço, especifique pelo menos um critério."
+    if canonical_equipment_name:
+        api_body_list[2] = canonical_equipment_name
 
     filter_instance = Filter(api_body_list, user_input)
     result = filter_instance.filter_order()
@@ -122,7 +182,7 @@ class IntelligentAssistant:
         documentation_retriever_tool = create_retriever_tool(
             retriever, "documentation_search", "Use esta ferramenta para buscar informações sobre documentos, processos e procedimentos fixos da empresa...")
         
-        return [get_live_machine_status, search_service_orders_api, documentation_retriever_tool]
+        return [get_live_machine_status, get_live_product_status, search_service_orders_api, get_live_general_status, documentation_retriever_tool]
 
     def run(self, user_input: str, chat_history: list) -> str:
         try:

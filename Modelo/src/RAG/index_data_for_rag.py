@@ -99,7 +99,6 @@ class RAGIndexer:
         print("\nIniciando indexação de dados de DOCUMENTAÇÃO para RAG...")
         all_documents = []
 
-        # Indexamos APENAS as tabelas com dados fixos/estáticos
         all_documents.extend(self._load_data_from_sql(table_name="products", name_column="product_name", doc_type="product"))
         all_documents.extend(self._load_docs_from_json_column(table_name="tecelagem_e_revisao"))
         all_documents.extend(self._load_docs_from_json_column(table_name="mantas"))
@@ -139,6 +138,5 @@ if __name__ == "__main__":
         'pwd': os.getenv("DB_PASSWORD") 
     }
     
-    print("Iniciando processo de indexação. Apague a pasta './my_rag_db_index' se desejar forçar uma recriação completa.")
-    indexer = RAGIndexer(persist_directory="./my_rag_db_index", db_config=sql_config)
+    indexer = RAGIndexer(persist_directory="./chromaDB", db_config=sql_config)
     indexer.index_data()

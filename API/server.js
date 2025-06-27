@@ -49,7 +49,7 @@ wss.on("connection", (ws, req) => {
         return client.terminate();
       }
       client.isAlive = false;
-      client.ping();    // envia PING de protocolo
+      client.ping();
     });
   }, 30000);
 
@@ -170,57 +170,6 @@ app.get("/logs/user/:userId", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao buscar o log do usuário no banco de dados." });
-  }
-});
-
-app.post("/logs/toggle", async (req, res) => {
-  try {
-    const { toggle, userId } = req.body;
-    if (toggle === undefined || !userId) {
-      return res.status(400).json({ error: "Campos 'toggle' e 'userId' são obrigatórios." });
-    }
-    const updatedAt = new Date().toISOString();
-    await pool.request()
-      .input('userId', sql.NVarChar(50), userId)
-      .input('toggle', sql.Bit, toggle)
-      .input('updatedAt', sql.DateTimeOffset, updatedAt)
-      .query(`
-        IF EXISTS (SELECT 1 FROM andritzButton_logs WHERE userId = @userId)
-          UPDATE andritzButton_logs
-            SET buttonState = @toggle,
-                updated_at = @updatedAt
-          WHERE userId = @userId;
-        ELSE
-          INSERT INTO andritzButton_logs (userId, buttonState, updated_at)
-          VALUES (@userId, @toggle, @updatedAt);
-      `);
-    res.status(200).json({ message: "Toggle salvo ou atualizado com sucesso." });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao salvar/atualizar o toggle no banco de dados." });
-  }
-});
-
-app.get("/logs/toggle/:userId", async (req, res) => {
-  const { userId } = req.params;
-  if (!userId) {
-    return res.status(400).json({ error: "Parâmetro 'userId' é obrigatório." });
-  }
-  try {
-    const result = await pool.request()
-      .input('userId', sql.NVarChar(50), userId)
-      .query(`
-        SELECT buttonState
-        FROM andritzButton_logs
-        WHERE userId = @userId
-      `);
-    if (!result.recordset.length) {
-      return res.status(404).json({ message: "Nenhum toggle encontrado para este usuário." });
-    }
-    res.json({ button: result.recordset[0].buttonState });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao buscar o toggle no banco de dados." });
   }
 });
 

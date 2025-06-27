@@ -1,8 +1,4 @@
 machines_names = {
-    "TP100 / Tear 01",
-    "CF1015 / Tear 02",
-    "TP500-1 / Tear03",
-    "CF1035 / Tear 04",
     "Tear05 / HF324",
     "Tear06 / HF820",
     "Tear07 / TM872",
@@ -17,5 +13,9 @@ machines_names = {
     "Hechtenberg",
     "SixMeter",
     "CLT1",
-    "CLT2"
+    "CLT2",
+    "TP100 / Tear 01",
+    "CF1015 / Tear 02",
+    "TP500-1 / Tear03",
+    "CF1035 / Tear 04",
 }

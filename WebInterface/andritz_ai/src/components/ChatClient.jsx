@@ -154,20 +154,6 @@ export default function Chatbot({ email }) {
         };
     }, [email]);
 
-
-    const handleToggleChange = async (e) => {
-        const toggle = e.target.checked;
-        const userId = email;
-        await fetch(`${process.env.NEXT_PUBLIC_API_C_DEV}/logs/toggle`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ toggle, userId }),
-        });
-        if (typeof window !== "undefined") {
-            localStorage.setItem("isToggleActive", JSON.stringify(toggle));
-        }
-    };
-
     const sendMessage = async () => {
         if (!input.trim()) return;
         const userId = email;
@@ -307,36 +293,7 @@ export default function Chatbot({ email }) {
 
                 <div className="flex justify-between text-center relative mb-6">
 
-                    <label className="neo-toggle-container left-0">
-                        <input
-                            type="checkbox"
-                            className="neo-toggle-input"
-                            defaultChecked={false}
-                            onChange={handleToggleChange}
-                        />
-                        <span className="neo-toggle">
-                            <span className="neo-track">
-                                <span className="neo-background-layer"></span>
-                                <span className="neo-grid-layer"></span>
-                                <span className="neo-track-highlight"></span>
-                            </span>
-                            <span className="neo-thumb">
-                                <span className="neo-thumb-ring"></span>
-                                <span className="neo-thumb-core">
-                                    <span className="neo-thumb-icon">
-                                        <span className="neo-thumb-wave"></span>
-                                    </span>
-                                </span>
-                                <span className="neo-thumb-pulse"></span>
-                            </span>
-                        </span>
-                        <span className="neo-status top-10">
-                            <span className="neo-status-indicator">
-                                <span className="neo-status-text">Andritz Mode</span>
-                                <span className="neo-status-dot"></span>
-                            </span>
-                        </span>
-                    </label>
+                    
 
                     <div className="flex items-center text-center">
                         <button
