@@ -6,6 +6,7 @@ from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from dotenv import load_dotenv
 import pyodbc
+import fitz
 
 class RAGIndexer:
     def __init__(self, persist_directory: str = "./rag_db", 
@@ -33,13 +34,58 @@ class RAGIndexer:
         except pyodbc.Error as ex:
             print(f"Erro ao conectar ao SQL Server: {ex}")
             return None
+    
+    def _load_docs_from_pdf_in_db(self, table_name: str, id_column: str = 'id', filename_column: str = 'file_name', content_column: str = 'pdf_content') -> list[Document]:
+        documents = []
+        print(f"Buscando PDFs da tabela '{table_name}' para extração de texto...")
+        
+        try:
+            with self._get_db_connection() as conn:
+                if not conn: return []
+                with conn.cursor() as cursor:
+                    query = f"SELECT {id_column}, {filename_column}, {content_column} FROM {table_name}"
+                    cursor.execute(query)
+                    
+                    for row in cursor.fetchall():
+                        pdf_id = row[0]
+                        pdf_filename = row[1]
+                        pdf_binary_data = row[2]
+
+                        if not pdf_binary_data:
+                            continue
+
+                        print(f"  - Processando PDF: ID={pdf_id}, Nome='{pdf_filename}'")
+                        
+                        try:
+                            # Abre o PDF a partir dos dados binários em memória
+                            with fitz.open(stream=pdf_binary_data, filetype="pdf") as doc:
+                                extracted_text = ""
+                                for page in doc:
+                                    extracted_text += page.get_text("text")
+                                
+                                if extracted_text:
+                                    metadata = {
+                                        "source_table": table_name,
+                                        "file_name": pdf_filename,
+                                        "content_column": content_column,
+                                    }
+                                    documents.append(Document(page_content=extracted_text, metadata=metadata))
+
+                        except Exception as e:
+                            print(f"    ERRO: Não foi possível processar o PDF com ID={pdf_id}. Erro: {e}")
+
+            print(f"Extração concluída. Coletados {len(documents)} documentos a partir dos PDFs.")
+        except Exception as e:
+            print(f"Erro geral ao buscar dados da tabela de PDF '{table_name}': {e}")
+            
+        return documents
 
     def _extract_content_and_metadata(self, row_data: dict, table_name: str, name_column: str = None, doc_type: str = None) -> Document:
         metadata = {"source_table": table_name}
         if 'id' in row_data:
             metadata['id'] = row_data['id']
         if name_column and name_column in row_data:
-            metadata['name'] = row_data[name_column]
+            metadata['file_name'] = row_data[name_column]
         if doc_type:
             metadata['type'] = doc_type
         
@@ -82,7 +128,7 @@ class RAGIndexer:
                         try:
                             data = json.loads(json_string)
                             page_content = "\n\n".join(str(value).strip() for value in data.values())
-                            metadata = {"source_table": table_name}
+                            metadata = {"source_table": table_name, "content_column": content_column}
                             for col in metadata_columns:
                                 if col in row_dict: metadata[col] = row_dict[col]
                             documents.append(Document(page_content=page_content, metadata=metadata))
@@ -96,7 +142,6 @@ class RAGIndexer:
     def index_data(self):
         all_documents = []
 
-        all_documents.extend(self._load_data_from_sql(table_name="products", name_column="product_name", doc_type="product"))
         all_documents.extend(self._load_docs_from_json_column(table_name="tecelagem_e_revisao"))
         all_documents.extend(self._load_docs_from_json_column(table_name="mantas"))
         all_documents.extend(self._load_docs_from_json_column(table_name="recepcao_de_materiais"))
@@ -105,6 +150,7 @@ class RAGIndexer:
         all_documents.extend(self._load_docs_from_json_column(table_name="metrologia"))
         all_documents.extend(self._load_docs_from_json_column(table_name="expedicao"))
         all_documents.extend(self._load_docs_from_json_column(table_name="acabamento"))
+        all_documents.extend(self._load_docs_from_pdf_in_db(table_name="DocumentosPDF"))
         
         if not all_documents:
             print("Nenhum dado encontrado para indexar. Indexação abortada.")

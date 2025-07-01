@@ -157,8 +157,47 @@ def search_service_orders_api(user_input: str, equipment_name: Optional[str] = N
 
     return result
 
+@tool
+def search_documentation(query: str, source_filter: Optional[dict] = None) -> str:
+    """
+    Busca informações em documentos, manuais e procedimentos da empresa.
+    Para buscas focadas, use o parâmetro 'source_filter' com um dicionário.
+    Exemplo para filtrar por nome de arquivo: {"file_name": "Analista de Automação Sr - 1.057 .pdf"}
+    Exemplo para filtrar por tipo de documento (tabela): {"source_table": "mantas"}
+    """
+    print(f"--- ATIVANDO FERRAMENTA: search_documentation ---")
+    print(f"Query: '{query}', Filtro: {source_filter}")
+
+    db_path = r"C:\Users\Rafael\Desktop\Projeto 2025\Modelo\rag_db_index"
+
+    base_embedder = OpenAIEmbeddings(model="text-embedding-3-small")
+    cached_embedder = ManualCachedEmbedder(base_embedder=base_embedder)
+
+    vectorstore = Chroma(
+        persist_directory=db_path,
+        embedding_function=cached_embedder
+    )
+
+    search_kwargs = {'k': 5}
+    
+    if source_filter:
+        search_kwargs['filter'] = source_filter
+
+    retriever = vectorstore.as_retriever(search_kwargs=search_kwargs)
+    
+    docs = retriever.invoke(query)
+
+    if not docs:
+        return "Nenhuma informação relevante foi encontrada para esta consulta com os filtros aplicados."
+
+    context = "\n\n---\n\n".join(
+        f"[Fonte: {doc.metadata.get('file_name', doc.metadata.get('source_table', 'N/A'))}]\n{doc.page_content}"
+        for doc in docs
+    )
+    return f"Aqui estão os trechos de documentos encontrados sobre '{query}':\n\n{context}"
+
 class IntelligentAssistant:
-    def __init__(self, persist_directory="./rag_db_index"):
+    def __init__(self, persist_directory=r"C:\Users\Rafael\Desktop\Projeto 2025\Modelo\rag_db_index"):
 
         load_dotenv()
         
@@ -169,7 +208,7 @@ class IntelligentAssistant:
             print(f"AVISO: Cache de LLM com Redis desativado. Erro: {e}")
 
         self.llm = ChatOpenAI(model="gpt-4o", temperature=0)
-        self.tools = self._create_tools(persist_directory)
+        self.tools = self._create_tools()
 
         prompt = hub.pull("hwchase17/openai-functions-agent")
         prompt.input_variables.append("chat_history")
@@ -177,27 +216,16 @@ class IntelligentAssistant:
 
         self.agent_executor = AgentExecutor(agent=agent, tools=self.tools, verbose=True)
 
-    def _create_tools(self, persist_directory: str) -> list:
-
-        base_embedder = OpenAIEmbeddings(model="text-embedding-3-small")
-        cached_embedder = ManualCachedEmbedder(base_embedder=base_embedder)
+    def _create_tools(self) -> list:
         
-        vectorstore = Chroma(
-            persist_directory=persist_directory, 
-            embedding_function=cached_embedder
-        )
-        retriever = vectorstore.as_retriever(search_kwargs={'k': 3})
-        documentation_retriever_tool = create_retriever_tool(
-            retriever,
-            "documentation_search",
-            "Use esta ferramenta para buscar informações sobre documentos, processos e procedimentos fixos da empresa..."
-        )
+        print("Criando ferramenta de RAG com MultiQueryRetriever...")
+
         return [
-            get_live_machine_status, 
-            get_live_product_status, 
-            search_service_orders_api, 
-            get_live_general_status, 
-            documentation_retriever_tool
+            get_live_machine_status,
+            get_live_product_status,
+            search_service_orders_api,
+            get_live_general_status,
+            search_documentation,
         ]
 
     def run(self, user_input: str, chat_history: list) -> str:
@@ -220,7 +248,7 @@ class IntelligentAssistant:
                 print("Até logo!")
                 break
             
-            assistant_response = self.run(user_input)
+            assistant_response = self.run(user_input, "")
 
             print(f"\nAssistente: {assistant_response}\n")
 
